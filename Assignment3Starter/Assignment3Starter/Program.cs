@@ -1,4 +1,5 @@
-﻿/// <summary>
+﻿using System.IO;
+/// <summary>
 /// Assignment 3
 /// 
 /// Author: 
@@ -16,15 +17,16 @@ bool quit;
 // TODO: declare a constant to represent the max size of the sales
 // and dates arrays. The arrays must be large enough to store
 // sales for an entire month.
+const int MAX_SIZE = 31;
 
 
 // TODO: create a double array named 'sales', use the max size constant you declared
 // above to specify the physical size of the array.
-
+double[] sales = new double[MAX_SIZE];
 
 // TODO: create a string array named 'dates', use the max size constant you declared
 // above to specify the physical size of the array.
-
+string[] dates = new string[MAX_SIZE];
 
 string month;
 string year;
@@ -38,7 +40,7 @@ double smallest;
 DisplayProgramIntro();
 
 // TODO: call the DisplayMainMenu method
-
+DisplayMainMenu();
 
 while (displayMainMenu)
 {
@@ -55,7 +57,7 @@ while (displayMainMenu)
 			if (proceed)
 			{
 				// TODO: uncomment the following and call the EnterSales method below
-				//count = CALL THE METHOD HERE
+				count = EnterSales(sales, dates);
 				Console.WriteLine();
 				Console.WriteLine($"Entries completed. {count} records in temporary memory.");
 				Console.WriteLine();
@@ -77,7 +79,7 @@ while (displayMainMenu)
 				if (proceed)
 				{
 					filename = PromptForFilename();
-					// TODO: call the SaveSalesFile method here
+					SaveSalesFile(filename, sales, dates, count);
 
 				}
 				else
@@ -98,7 +100,7 @@ while (displayMainMenu)
 				if (proceed)
 				{
 					// TODO: call the EditEntries method here
-
+					EditEntries(sales, dates, count); 
 				}
 				else
 				{
@@ -112,7 +114,7 @@ while (displayMainMenu)
 			{
 				filename = Prompt("Enter name of file to load: ");
 				// TODO: uncomment the following and call the LoadSalesFile method below
-				//count = CALL THE METHOD HERE
+				count = LoadSalesFile(filename, sales, dates);
 				Console.WriteLine($"{count} records were loaded.");
 				Console.WriteLine();
 			}
@@ -129,7 +131,7 @@ while (displayMainMenu)
 			else
 			{
 				// TODO: call the DisplayEntries method here
-
+				DisplayEntries(sales, dates, count);
 			}
 			break;
 		case "M": //[M]onthly Statistics
@@ -143,7 +145,7 @@ while (displayMainMenu)
 				while (displayAnalysisMenu)
 				{
 					// TODO: call the DisplayAnalysisMenu here
-
+					DisplayAnalysisMenu();
 
 					analysisMenuChoice = Prompt("Enter ANALYSIS sub-menu option: ").ToUpper();
 					Console.WriteLine();
@@ -176,7 +178,7 @@ while (displayMainMenu)
 							break;
 						case "G": //[G]raph Sales
 							// TODO: call the DisplayChart method below
-
+							DisplaySalesChart(sales, dates, count);
 
 							Prompt("Press <enter> to continue...");
 							break;
@@ -192,6 +194,7 @@ while (displayMainMenu)
 			break;
 		case "D": //[D]isplay Main Menu
 			// TODO: call the DisplayMainMenu method
+			DisplayMainMenu();
 
 			break;
 		case "Q": //[Q]uit Program
@@ -219,11 +222,23 @@ DisplayProgramOutro();
 // ++++++++++++++++++++++++++++++++++++ Difficulty 1 ++++++++++++++++++++++++++++++++++++
 
 // TODO: create the Prompt method
-
+static string Prompt(string promptString)
+{
+    Console.Write(promptString);
+    return Console.ReadLine();
+}
 
 // TODO: create the PromptDouble method
 // The method must always return a double and should not crash the program.
-
+static double PromptDouble(string promptString)
+{
+    double value;
+    while (!double.TryParse(Prompt(promptString), out value))
+    {
+        Console.WriteLine("Invalid input. Please enter a numeric value.");
+    }
+    return value;
+}
 
 // TODO: create the DisplayMainMenu method
 // the menu must consist of the following options:
@@ -236,6 +251,18 @@ DisplayProgramOutro();
 // [M]onthly Statistics
 // [D]isplay Main Menu
 // [Q]uit Program
+static void DisplayMainMenu()
+{
+    Console.WriteLine("\n--- MAIN MENU ---");
+    Console.WriteLine("[N]ew Daily Sales Entry");
+    Console.WriteLine("[S]ave Entries to File");
+    Console.WriteLine("[E]dit Sales Entries");
+    Console.WriteLine("[L]oad Sales File");
+    Console.WriteLine("[V]iew Entered/Loaded Sales");
+    Console.WriteLine("[M]onthly Statistics");
+    Console.WriteLine("[D]isplay Main Menu");
+    Console.WriteLine("[Q]uit Program");
+}
 
 
 // TODO: create the DisplayAnalysisMenu method
@@ -246,41 +273,202 @@ DisplayProgramOutro();
 // [L]owest Sales
 // [G]raph Sales
 // [R]eturn to MAIN MENU
-
+static void DisplayAnalysisMenu()
+{
+    Console.WriteLine("\n--- ANALYSIS SUB-MENU ---");
+    Console.WriteLine("[A]verage Sales");
+    Console.WriteLine("[H]ighest Sales");
+    Console.WriteLine("[L]owest Sales");
+    Console.WriteLine("[G]raph Sales");
+    Console.WriteLine("[R]eturn to MAIN MENU");
+}
 
 // TODO: create the Largest method
-
+static int HighestSales(double[] sales, int countOfEntries)
+{
+    int index = 0;
+    for (int i = 1; i < countOfEntries; i++)
+    {
+        if (sales[i] > sales[index])
+        {
+            index = i;
+        }
+    }
+    return index;
+}
 
 // TODO: create the Smallest method
-
+static int LowestSales(double[] sales, int countOfEntries)
+{
+    int index = 0;
+    for (int i = 1; i < countOfEntries; i++)
+    {
+        if (sales[i] < sales[index])
+        {
+            index = i;
+        }
+    }
+    return index;
+}
 
 // TODO: create the Mean method
-
+static double MeanAverageSales(double[] sales, int countOfEntries)
+{
+    double total = 0;
+    for (int i = 0; i < countOfEntries; i++)
+    {
+        total += sales[i];
+    }
+    return total / countOfEntries;
+}
 
 // ++++++++++++++++++++++++++++++++++++ Difficulty 2 ++++++++++++++++++++++++++++++++++++
 
 
 // TODO: create the DisplayEntries method
-
+static void DisplayEntries(double[] sales, string[] dates, int countOfEntries)
+{
+    Console.WriteLine($"{"Date",-15} | {"Sales",10}");
+    Console.WriteLine("----------------------------");
+    for (int i = 0; i < countOfEntries; i++)
+    {
+        Console.WriteLine($"{dates[i],-15} | {sales[i],10:C}");
+    }
+    Console.WriteLine();
+}
 
 // TODO: create the EnterSales method
+static int EnterSales(double[] sales, string[] dates)
+{
+    int entriesCount = 0;
+    string keepGoing = "y";
 
+    while (keepGoing == "y" && entriesCount < sales.Length)
+    {
+        dates[entriesCount] = Prompt("Enter date (MMM-dd-yyyy): ").ToUpper();
+        sales[entriesCount] = PromptDouble($"Enter sales for {dates[entriesCount]}: ");
+        entriesCount++;
+
+        if (entriesCount < sales.Length)
+        {
+            keepGoing = Prompt("Add another day? (y/n): ").ToLower();
+        }
+    }
+    return entriesCount;
+}
 
 // TODO: create the LoadSalesFile method
-
+static int LoadSalesFile(string filename, double[] sales, string[] dates)
+{
+    int entriesLoaded = 0;
+    using (StreamReader reader = new StreamReader(filename))
+    {
+        reader.ReadLine(); 
+        while (!reader.EndOfStream && entriesLoaded < sales.Length)
+        {
+            string line = reader.ReadLine();
+            string[] columns = line.Split(',');
+            dates[entriesLoaded] = columns[0];
+            sales[entriesLoaded] = double.Parse(columns[1]);
+            entriesLoaded++;
+        }
+    }
+    return entriesLoaded;
+}
 
 // TODO: create the SaveSalesFile method
-
+static void SaveSalesFile(string filename, double[] sales, string[] dates, int countOfEntries)
+{
+    using (StreamWriter writer = new StreamWriter(filename))
+    {
+        writer.WriteLine("Date,Sales"); 
+        for (int i = 0; i < countOfEntries; i++)
+        {
+            writer.WriteLine($"{dates[i]},{sales[i]:F2}");
+        }
+    }
+    Console.WriteLine("File saved successfully.");
+}
 
 // ++++++++++++++++++++++++++++++++++++ Difficulty 3 ++++++++++++++++++++++++++++++++++++
 
 // TODO: create the EditEntries method
+static void EditEntries(double[] sales, string[] dates, int countOfEntries)
+{
+    Console.WriteLine("\n--- Edit Sales Entry ---");
+    for (int i = 0; i < countOfEntries; i++)
+    {
+        // We show i + 1 so the user sees "1" instead of index "0"
+        Console.WriteLine($"{i + 1}. {dates[i]}: {sales[i]:C}");
+    }
 
+    // 2. Ask which row they want to change
+    int rowChoice = (int)PromptDouble("\nEnter the row number to edit: ");
+    
+    // 3. Subtract 1 to get back to the actual array index
+    int index = rowChoice - 1;
+
+    // 4. Check if the number they picked is valid
+    if (index >= 0 && index < countOfEntries)
+    {
+        // Ask for the new price and save it into the array
+        double newAmount = PromptDouble($"Enter new sales amount for {dates[index]}: ");
+        sales[index] = newAmount;
+        Console.WriteLine("Update successful!");
+    }
+    else
+    {
+        Console.WriteLine("Invalid row number. Returning to menu.");
+    }
+}
 
 // ++++++++++++++++++++++++++++++++++++ Difficulty 4 ++++++++++++++++++++++++++++++++++++
 
 // TODO: create the DisplaySalesChart method
+static void DisplaySalesChart(double[] sales, string[] dates, int countOfEntries)
+{
+    // 1. Find the highest sale so we know how tall the chart needs to be
+    int highIndex = HighestSales(sales, countOfEntries);
+    double max = sales[highIndex];
 
+    Console.WriteLine("\n--- Sales Chart (Increments of $50) ---");
+
+    // 2. We start from the top price and work our way down to $0
+    // We round the max up to the nearest 50 for a clean start
+    for (double y = ((int)(max / 50) + 1) * 50; y >= 0; y -= 50)
+    {
+        // Print the Y-axis label (the price)
+        Console.Write($"{y,5} |");
+
+        // Look at every day's sales and see if it hits this price level
+        for (int i = 0; i < countOfEntries; i++)
+        {
+            if (sales[i] >= y)
+            {
+                Console.Write("  $   "); // Draw a bar if the sale is at or above this level
+            }
+            else
+            {
+                Console.Write("      "); // Leave empty if not
+            }
+        }
+        Console.WriteLine();
+    }
+
+    // 3. Draw the bottom line (X-axis)
+    Console.Write("      ");
+    for (int i = 0; i < countOfEntries; i++) Console.Write("------");
+    
+    // 4. Draw the days at the bottom
+    Console.Write("\nDays |");
+    for (int i = 0; i < countOfEntries; i++)
+    {
+        // Substring(4, 2) gets just the day part (e.g., the '15' in 'JAN-15-2024')
+        string day = dates[i].Substring(4, 2);
+        Console.Write($"  {day}  ");
+    }
+    Console.WriteLine("\n");
+}
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // ++++++++++++++++++++++++++++++++++++ Additional Provided Methods ++++++++++++++++++++++++++++++++++++
